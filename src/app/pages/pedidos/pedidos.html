@@ -1,0 +1,160 @@
+<div class="pagina">
+
+  <header class="encabezado">
+    <div>
+      <h1>Pedidos360</h1>
+      <p>Gestión de pedidos</p>
+
+      <p *ngIf="nombreUsuario">
+        Sesión iniciada como:
+        <strong>{{ nombreUsuario }}</strong>
+      </p>
+    </div>
+
+    <button class="btn-salir" (click)="cerrarSesion()">
+      Cerrar sesión
+    </button>
+  </header>
+
+  <main class="contenido">
+
+    <div class="titulo-seccion">
+      <div>
+        <h2>Pedidos</h2>
+        <p>Administra los pedidos registrados en el sistema.</p>
+      </div>
+
+      <button class="btn-nuevo" (click)="abrirFormulario()">
+        + Nuevo pedido
+      </button>
+    </div>
+
+    <!-- FORMULARIO NUEVO PEDIDO -->
+    <div class="formulario-contenedor" *ngIf="mostrarFormulario">
+
+      <h3>
+        {{ modoEdicion ? 'Editar pedido' : 'Nuevo pedido' }}
+      </h3>
+
+      <form (ngSubmit)="guardarPedido()">
+
+        <div class="campo">
+          <label for="cliente">Cliente</label>
+
+          <input id="cliente" type="text" name="cliente" [(ngModel)]="nuevoPedido.cliente"
+            placeholder="Nombre del cliente" required>
+        </div>
+
+        <div class="campo">
+          <label for="producto">Producto</label>
+
+          <input id="producto" type="text" name="producto" [(ngModel)]="nuevoPedido.producto"
+            placeholder="Nombre del producto" required>
+        </div>
+
+        <div class="campo">
+          <label for="cantidad">Cantidad</label>
+
+          <input id="cantidad" type="number" name="cantidad" [(ngModel)]="nuevoPedido.cantidad" min="1" required>
+        </div>
+
+        <div class="campo">
+          <label for="estado">Estado</label>
+
+          <select id="estado" name="estado" [(ngModel)]="nuevoPedido.estado">
+
+            <option value="PENDIENTE">
+              PENDIENTE
+            </option>
+
+            <option value="EN_PROCESO">
+              EN PROCESO
+            </option>
+
+            <option value="COMPLETADO">
+              COMPLETADO
+            </option>
+
+            <option value="CANCELADO">
+              CANCELADO
+            </option>
+
+          </select>
+        </div>
+
+        <div class="acciones-formulario">
+
+          <button type="button" class="btn-cancelar" (click)="cerrarFormulario()">
+            Cancelar
+          </button>
+
+          <button type="submit" class="btn-guardar">
+            {{ modoEdicion ? 'Guardar cambios' : 'Guardar pedido' }}
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+    <!-- TABLA DE PEDIDOS -->
+    <div class="tabla-contenedor">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr *ngFor="let pedido of pedidos">
+
+            <td>{{ pedido.id }}</td>
+            <td>{{ pedido.cliente }}</td>
+            <td>{{ pedido.producto }}</td>
+            <td>{{ pedido.cantidad }}</td>
+
+            <td>
+              <span class="estado">
+                {{ pedido.estado }}
+              </span>
+            </td>
+
+            <td>
+
+              <button class="btn-editar" (click)="editarPedido(pedido)">
+                Editar
+              </button>
+
+              <button class="btn-eliminar" (click)="eliminarPedido(pedido)">
+                Eliminar
+              </button>
+
+            </td>
+
+          </tr>
+
+          <tr *ngIf="pedidos.length === 0">
+            <td colspan="6">
+              No hay pedidos disponibles.
+            </td>
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </main>
+
+</div>
