@@ -14,44 +14,44 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-    // Cola y exchange principales
+    // Configuración centralizada de pedidos
     public static final String PEDIDOS_EXCHANGE = "pedidos.exchange";
     public static final String PEDIDOS_QUEUE = "pedidos.queue";
     public static final String PEDIDOS_ROUTING_KEY = "pedidos.creado";
 
-    // Dead Letter Queue
+    // Configuración centralizada de mensajes rechazados
     public static final String DLX = "pedidos.dlx";
     public static final String DLQ = "pedidos.dlq";
     public static final String DLQ_ROUTING_KEY = "pedidos.error";
 
-    // Exchange principal
     @Bean
     public DirectExchange pedidosExchange() {
-        return new DirectExchange(PEDIDOS_EXCHANGE);
+        return new DirectExchange(PEDIDOS_EXCHANGE, true, false);
     }
 
-    // Exchange para mensajes rechazados
     @Bean
     public DirectExchange deadLetterExchange() {
-        return new DirectExchange(DLX);
+        return new DirectExchange(DLX, true, false);
     }
 
-    // Cola principal con DLQ configurada
+    // Cola principal de tipo Quorum con Dead Letter Exchange
     @Bean
     public Queue pedidosQueue() {
         return QueueBuilder.durable(PEDIDOS_QUEUE)
+                .quorum()
                 .deadLetterExchange(DLX)
                 .deadLetterRoutingKey(DLQ_ROUTING_KEY)
                 .build();
     }
 
-    // Cola de mensajes rechazados
+    // Cola de errores también de tipo Quorum
     @Bean
     public Queue deadLetterQueue() {
-        return QueueBuilder.durable(DLQ).build();
+        return QueueBuilder.durable(DLQ)
+                .quorum()
+                .build();
     }
 
-    // Binding de la cola principal
     @Bean
     public Binding pedidosBinding(
             Queue pedidosQueue,
@@ -63,7 +63,6 @@ public class RabbitMQConfig {
                 .with(PEDIDOS_ROUTING_KEY);
     }
 
-    // Binding de la cola de errores
     @Bean
     public Binding deadLetterBinding(
             Queue deadLetterQueue,

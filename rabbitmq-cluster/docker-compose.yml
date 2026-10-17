@@ -1,0 +1,40 @@
+services:
+  rabbitmq1:
+    image: rabbitmq:3-management
+    hostname: rabbitmq1
+    container_name: pedidos-rabbitmq1
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_ERLANG_COOKIE: pedidos360-cluster-cookie
+    volumes:
+      - rabbitmq1_data:/var/lib/rabbitmq
+    networks:
+      - pedidos-network
+
+  rabbitmq2:
+    image: rabbitmq:3-management
+    hostname: rabbitmq2
+    container_name: pedidos-rabbitmq2
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_ERLANG_COOKIE: pedidos360-cluster-cookie
+    volumes:
+      - rabbitmq2_data:/var/lib/rabbitmq
+    networks:
+      - pedidos-network
+
+volumes:
+  rabbitmq1_data:
+  rabbitmq2_data:
+
+networks:
+  pedidos-network:
+    driver: bridge
