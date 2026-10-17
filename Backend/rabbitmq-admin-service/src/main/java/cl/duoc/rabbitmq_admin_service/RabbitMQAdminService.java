@@ -1,9 +1,11 @@
+
 package cl.duoc.rabbitmq_admin_service;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +24,9 @@ public class RabbitMQAdminService {
 
     private String validarNombre(String nombre, String tipo) {
         if (nombre == null || nombre.isBlank()) {
-            throw new IllegalArgumentException(tipo + " no puede estar vacío");
+            throw new IllegalArgumentException(
+                tipo + " no puede estar vacío"
+            );
         }
         return nombre;
     }
@@ -59,10 +63,13 @@ public class RabbitMQAdminService {
         return informacion;
     }
 
-    // CREAR COLA
+    // CREAR COLA QUORUM
     public void crearCola(String nombre) {
 
-        Queue cola = new Queue(nombre, true);
+        Queue cola = QueueBuilder
+                .durable(nombre)
+                .quorum()
+                .build();
 
         rabbitAdmin.declareQueue(cola);
     }
