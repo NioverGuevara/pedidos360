@@ -1,3 +1,4 @@
+
 import {
   ApplicationConfig,
   provideBrowserGlobalErrorListeners
@@ -31,53 +32,69 @@ import {
 
 import { routes } from './app.routes';
 
+const API_SCOPE =
+  'api://bb47a6a0-1b96-43fb-b107-1576638ee9e8/Pedidos.ReadWrite';
 
+// CONFIGURACION DE MICROSOFT ENTRA ID
 export function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
     auth: {
       clientId: 'bb47a6a0-1b96-43fb-b107-1576638ee9e8',
-
       authority:
         'https://login.microsoftonline.com/bb5324af-c266-41ed-b36c-a971641c7af2',
-
       redirectUri: 'http://localhost:4200/redirect',
-
       postLogoutRedirectUri: 'http://localhost:4200'
     },
-
     cache: {
       cacheLocation: 'localStorage'
     }
   });
 }
 
-
+// CONFIGURACION DE PROTECCION DE RUTAS
 export function MSALGuardConfigFactory(): MsalGuardConfiguration {
   return {
     interactionType: InteractionType.Redirect,
-
     authRequest: {
       scopes: [
         'openid',
         'profile',
-        'api://bb47a6a0-1b96-43fb-b107-1576638ee9e8/Pedidos.ReadWrite'
+        API_SCOPE
       ]
     }
   };
 }
 
-
+// CONFIGURACION DE TOKENS PARA LOS MICROSERVICIOS
 export function MSALInterceptorConfigFactory():
   MsalInterceptorConfiguration {
 
   const protectedResourceMap =
     new Map<string, Array<string>>([
+
+      // MICROSERVICIO 1: PEDIDOS - PUERTO 8080
       [
         'http://localhost:8080/api/pedidos',
-        [
-          'api://bb47a6a0-1b96-43fb-b107-1576638ee9e8/Pedidos.ReadWrite'
-        ]
+        [API_SCOPE]
+      ],
+
+      [
+        'http://localhost:8080/api/pedidos/*',
+        [API_SCOPE]
+      ],
+
+      // MICROSERVICIO 2: RABBITMQ ADMIN - PUERTO 8081
+      [
+        'http://localhost:8081/api/rabbitmq/colas',
+        [API_SCOPE]
+      ],
+
+      // PROTEGER LOS DEMAS ENDPOINTS ADMINISTRATIVOS
+      [
+        'http://localhost:8081/api/rabbitmq/*',
+        [API_SCOPE]
       ]
+
     ]);
 
   return {
@@ -86,10 +103,9 @@ export function MSALInterceptorConfigFactory():
   };
 }
 
-
+// CONFIGURACION PRINCIPAL DE ANGULAR
 export const appConfig: ApplicationConfig = {
   providers: [
-
     provideBrowserGlobalErrorListeners(),
 
     provideRouter(routes),

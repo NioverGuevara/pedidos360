@@ -1,4 +1,4 @@
-﻿# Visual Studio Code
+# Visual Studio Code
 .vscode/
 
 # Evidencias locales
@@ -22,3 +22,11 @@ application-secret.properties
 # Sistema operativo
 .DS_Store
 Thumbs.db
+
+# Angular / Node.js
+**/node_modules/
+**/dist/
+**/.angular/
+
+# Archivos de diagnostico
+**/error-backend.txt
