@@ -13,6 +13,12 @@ export interface InformacionCola {
 export interface EstadoColas {
   'pedidos.queue': InformacionCola;
   'pedidos.dlq': InformacionCola;
+
+  'notificaciones.queue': InformacionCola;
+  'notificaciones.dlq': InformacionCola;
+
+  'tickets.queue': InformacionCola;
+  'tickets.dlq': InformacionCola;
 }
 
 @Injectable({
@@ -20,12 +26,12 @@ export interface EstadoColas {
 })
 export class RabbitmqService {
 
-  // Segundo microservicio: RabbitMQ Admin
+  // API del microservicio administrativo RabbitMQ
   private apiUrl = 'http://localhost:8081/api/rabbitmq';
 
   constructor(private http: HttpClient) {}
 
-  // Consultar estado de las colas
+  // Obtener el estado de las seis colas
   obtenerColas(): Observable<EstadoColas> {
     return this.http.get<EstadoColas>(
       `${this.apiUrl}/colas`

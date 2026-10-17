@@ -63,7 +63,7 @@ export class Pedidos implements OnInit {
     this.cargarColas();
   }
 
-  // OBTENER INFORMACIÓN DEL USUARIO
+  // OBTENER INFORMACION DEL USUARIO
   obtenerUsuario(): void {
     const cuenta =
       this.msalService.instance.getActiveAccount() ??
@@ -129,7 +129,6 @@ export class Pedidos implements OnInit {
     this.pedidoService.obtenerPedidos().subscribe({
       next: (datos) => {
         this.pedidos = datos;
-
         this.cdr.detectChanges();
       },
 
@@ -144,7 +143,7 @@ export class Pedidos implements OnInit {
     });
   }
 
-  // CONSULTAR COLAS DE RABBITMQ
+  // CONSULTAR LAS SEIS COLAS DE RABBITMQ
   cargarColas(): void {
     this.cargandoColas = true;
     this.errorColas = '';
@@ -160,7 +159,11 @@ export class Pedidos implements OnInit {
 
         this.colasRabbitmq = [
           datos['pedidos.queue'],
-          datos['pedidos.dlq']
+          datos['notificaciones.queue'],
+          datos['tickets.queue'],
+          datos['pedidos.dlq'],
+          datos['notificaciones.dlq'],
+          datos['tickets.dlq']
         ].filter(
           (cola): cola is InformacionCola => !!cola
         );
@@ -186,7 +189,6 @@ export class Pedidos implements OnInit {
           'No fue posible consultar las colas de RabbitMQ.';
 
         this.cargandoColas = false;
-
         this.cdr.detectChanges();
       }
     });
@@ -337,7 +339,7 @@ export class Pedidos implements OnInit {
     });
   }
 
-  // CERRAR SESIÓN DE MICROSOFT
+  // CERRAR SESION DE MICROSOFT
   cerrarSesion(): void {
     this.msalService.logoutRedirect({
       postLogoutRedirectUri:

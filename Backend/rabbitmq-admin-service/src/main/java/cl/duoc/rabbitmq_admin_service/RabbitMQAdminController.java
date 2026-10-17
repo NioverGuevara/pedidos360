@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/rabbitmq")
@@ -13,29 +14,44 @@ public class RabbitMQAdminController {
 
     private final RabbitMQAdminService adminService;
 
+    // Recursos fundamentales que no se pueden eliminar
+    private static final Set<String> RECURSOS_PROTEGIDOS = Set.of(
+        "pedidos.queue",
+        "notificaciones.queue",
+        "tickets.queue",
+        "pedidos.dlq",
+        "notificaciones.dlq",
+        "tickets.dlq",
+        "pedidos.exchange",
+        "eventos.topic",
+        "pedidos.dlx"
+    );
+
     public RabbitMQAdminController(RabbitMQAdminService adminService) {
         this.adminService = adminService;
     }
 
-    // CONSULTAR COLAS PRINCIPALES
+    // CONSULTAR LAS SEIS COLAS
     @GetMapping("/colas")
     public ResponseEntity<Map<String, Object>> listarColas() {
 
         Map<String, Object> resultado = new LinkedHashMap<>();
 
-        resultado.put(
-            RabbitMQConfig.PEDIDOS_QUEUE,
-            adminService.obtenerInformacionCola(
-                RabbitMQConfig.PEDIDOS_QUEUE
-            )
-        );
+        String[] colas = {
+            "pedidos.queue",
+            "notificaciones.queue",
+            "tickets.queue",
+            "pedidos.dlq",
+            "notificaciones.dlq",
+            "tickets.dlq"
+        };
 
-        resultado.put(
-            RabbitMQConfig.DLQ,
-            adminService.obtenerInformacionCola(
-                RabbitMQConfig.DLQ
-            )
-        );
+        for (String nombre : colas) {
+            resultado.put(
+                nombre,
+                adminService.obtenerInformacionCola(nombre)
+            );
+        }
 
         return ResponseEntity.ok(resultado);
     }
@@ -107,7 +123,10 @@ public class RabbitMQAdminController {
 
         if (!eliminado) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("error", "El exchange no existe"));
+                .body(Map.of(
+                    "error",
+                    "El exchange no existe"
+                ));
         }
 
         return ResponseEntity.ok(
@@ -134,7 +153,9 @@ public class RabbitMQAdminController {
         );
 
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(Map.of("mensaje", "Binding creado"));
+            .body(Map.of(
+                "mensaje", "Binding creado"
+            ));
     }
 
     // ELIMINAR BINDING
@@ -156,7 +177,9 @@ public class RabbitMQAdminController {
         );
 
         return ResponseEntity.ok(
-            Map.of("mensaje", "Binding eliminado")
+            Map.of(
+                "mensaje", "Binding eliminado"
+            )
         );
     }
 
@@ -171,7 +194,7 @@ public class RabbitMQAdminController {
 
         String limpio = nombre.trim();
 
-        if (!limpio.matches("[a-zA-Z0-9._-]{1,100}")) {
+        if (!limpio.matches("[a-zA-Z0-9._*-]{1,100}")) {
             throw new IllegalArgumentException(
                 "El nombre contiene caracteres no permitidos"
             );
@@ -183,11 +206,7 @@ public class RabbitMQAdminController {
     // PROTEGER RECURSOS PRINCIPALES
     private void protegerRecursos(String nombre) {
 
-        if (nombre.equals(RabbitMQConfig.PEDIDOS_QUEUE)
-                || nombre.equals(RabbitMQConfig.DLQ)
-                || nombre.equals(RabbitMQConfig.PEDIDOS_EXCHANGE)
-                || nombre.equals(RabbitMQConfig.DLX)) {
-
+        if (RECURSOS_PROTEGIDOS.contains(nombre)) {
             throw new IllegalArgumentException(
                 "No se permite eliminar recursos principales de Pedidos360"
             );
