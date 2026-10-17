@@ -1,3 +1,4 @@
+
 package cl.duoc.pedidos_service.service;
 
 import cl.duoc.pedidos_service.model.Pedido;
@@ -19,8 +20,13 @@ class PedidoServiceTest {
 
     @BeforeEach
     void configurar() {
+
         pedidoRepository = Mockito.mock(PedidoRepository.class);
-        pedidoService = new PedidoService(pedidoRepository);
+
+        pedidoService = new PedidoService(
+                pedidoRepository,
+                null
+        );
     }
 
     @Test
@@ -46,8 +52,20 @@ class PedidoServiceTest {
         List<Pedido> resultado = pedidoService.obtenerTodos();
 
         assertEquals(2, resultado.size());
-        assertEquals("Alexander Rojas", resultado.get(0).getCliente());
-        assertEquals("Notebook", resultado.get(0).getProducto());
-        assertEquals("Cliente Prueba", resultado.get(1).getCliente());
+
+        assertEquals(
+                "Alexander Rojas",
+                resultado.get(0).getCliente()
+        );
+
+        assertEquals(
+                "Notebook",
+                resultado.get(0).getProducto()
+        );
+
+        assertEquals(
+                "Cliente Prueba",
+                resultado.get(1).getCliente()
+        );
     }
 }

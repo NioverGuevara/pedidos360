@@ -1,10 +1,21 @@
-import { Component, OnInit } from '@angular/core';
+
+import {
+  Component,
+  OnInit,
+  ChangeDetectorRef
+} from '@angular/core';
+
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MsalService } from '@azure/msal-angular';
 
 import { Pedido } from '../../models/pedido';
 import { PedidoService } from '../../services/pedido';
+
+import {
+  RabbitmqService,
+  InformacionCola
+} from '../../services/rabbitmq';
 
 @Component({
   selector: 'app-pedidos',
@@ -14,14 +25,22 @@ import { PedidoService } from '../../services/pedido';
 })
 export class Pedidos implements OnInit {
 
+  // PEDIDOS
   pedidos: Pedido[] = [];
 
+  // USUARIO AUTENTICADO
   nombreUsuario = '';
   correoUsuario = '';
 
+  // FORMULARIO
   mostrarFormulario = false;
   modoEdicion = false;
   pedidoEditandoId?: number;
+
+  // RABBITMQ
+  colasRabbitmq: InformacionCola[] = [];
+  cargandoColas = false;
+  errorColas = '';
 
   nuevoPedido: Pedido = {
     cliente: '',
@@ -32,15 +51,19 @@ export class Pedidos implements OnInit {
 
   constructor(
     private pedidoService: PedidoService,
-    private msalService: MsalService
+    private msalService: MsalService,
+    private rabbitmqService: RabbitmqService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.obtenerUsuario();
     this.obtenerAccessToken();
     this.cargarPedidos();
+    this.cargarColas();
   }
 
+  // OBTENER INFORMACIÓN DEL USUARIO
   obtenerUsuario(): void {
     const cuenta =
       this.msalService.instance.getActiveAccount() ??
@@ -52,18 +75,23 @@ export class Pedidos implements OnInit {
       this.nombreUsuario = cuenta.name ?? 'Usuario';
       this.correoUsuario = cuenta.username;
 
-      console.log('Usuario autenticado:', cuenta);
-      console.log('Claims del token:', cuenta.idTokenClaims);
+      console.log(
+        'Usuario autenticado:',
+        cuenta.username
+      );
     }
   }
 
+  // OBTENER TOKEN JWT DE MICROSOFT
   obtenerAccessToken(): void {
     const cuenta =
       this.msalService.instance.getActiveAccount() ??
       this.msalService.instance.getAllAccounts()[0];
 
     if (!cuenta) {
-      console.error('No hay una cuenta autenticada.');
+      console.error(
+        'No hay una cuenta autenticada.'
+      );
       return;
     }
 
@@ -74,26 +102,97 @@ export class Pedidos implements OnInit {
       ]
     })
     .then((respuesta) => {
-      console.log('Access token obtenido correctamente');
-      console.log('Scopes concedidos:', respuesta.scopes);
-      console.log('Expira:', respuesta.expiresOn);
+      console.log(
+        'Access token obtenido correctamente'
+      );
+
+      console.log(
+        'Scopes concedidos:',
+        respuesta.scopes
+      );
+
+      console.log(
+        'Expira:',
+        respuesta.expiresOn
+      );
     })
     .catch((error) => {
-      console.error('Error al obtener access token:', error);
+      console.error(
+        'Error al obtener access token:',
+        error
+      );
     });
   }
 
+  // CONSULTAR PEDIDOS
   cargarPedidos(): void {
     this.pedidoService.obtenerPedidos().subscribe({
       next: (datos) => {
         this.pedidos = datos;
+
+        this.cdr.detectChanges();
       },
+
       error: (error) => {
-        console.error('Error al obtener los pedidos:', error);
+        console.error(
+          'Error al obtener los pedidos:',
+          error
+        );
+
+        this.cdr.detectChanges();
       }
     });
   }
 
+  // CONSULTAR COLAS DE RABBITMQ
+  cargarColas(): void {
+    this.cargandoColas = true;
+    this.errorColas = '';
+
+    this.cdr.detectChanges();
+
+    this.rabbitmqService.obtenerColas().subscribe({
+      next: (datos) => {
+        console.log(
+          'Respuesta recibida de RabbitMQ:',
+          datos
+        );
+
+        this.colasRabbitmq = [
+          datos['pedidos.queue'],
+          datos['pedidos.dlq']
+        ].filter(
+          (cola): cola is InformacionCola => !!cola
+        );
+
+        this.cargandoColas = false;
+        this.errorColas = '';
+
+        this.cdr.detectChanges();
+
+        console.log(
+          'Colas cargadas correctamente:',
+          this.colasRabbitmq
+        );
+      },
+
+      error: (error) => {
+        console.error(
+          'Error al consultar RabbitMQ:',
+          error
+        );
+
+        this.errorColas =
+          'No fue posible consultar las colas de RabbitMQ.';
+
+        this.cargandoColas = false;
+
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // ABRIR FORMULARIO PARA CREAR PEDIDO
   abrirFormulario(): void {
     this.modoEdicion = false;
     this.pedidoEditandoId = undefined;
@@ -108,6 +207,7 @@ export class Pedidos implements OnInit {
     this.mostrarFormulario = true;
   }
 
+  // ABRIR FORMULARIO PARA EDITAR PEDIDO
   editarPedido(pedido: Pedido): void {
     if (pedido.id === undefined) {
       return;
@@ -127,6 +227,7 @@ export class Pedidos implements OnInit {
     this.mostrarFormulario = true;
   }
 
+  // CERRAR FORMULARIO
   cerrarFormulario(): void {
     this.mostrarFormulario = false;
     this.modoEdicion = false;
@@ -140,43 +241,71 @@ export class Pedidos implements OnInit {
     };
   }
 
+  // CREAR O ACTUALIZAR PEDIDO
   guardarPedido(): void {
     if (
       !this.nuevoPedido.cliente.trim() ||
       !this.nuevoPedido.producto.trim() ||
       this.nuevoPedido.cantidad <= 0
     ) {
-      alert('Completa correctamente todos los campos.');
+      alert(
+        'Completa correctamente todos los campos.'
+      );
       return;
     }
 
-    if (this.modoEdicion && this.pedidoEditandoId !== undefined) {
+    if (
+      this.modoEdicion &&
+      this.pedidoEditandoId !== undefined
+    ) {
       this.pedidoService
-        .actualizarPedido(this.pedidoEditandoId, this.nuevoPedido)
+        .actualizarPedido(
+          this.pedidoEditandoId,
+          this.nuevoPedido
+        )
         .subscribe({
           next: () => {
             this.cerrarFormulario();
             this.cargarPedidos();
           },
+
           error: (error) => {
-            console.error('Error al actualizar el pedido:', error);
-            alert('No fue posible actualizar el pedido.');
+            console.error(
+              'Error al actualizar el pedido:',
+              error
+            );
+
+            alert(
+              'No fue posible actualizar el pedido.'
+            );
           }
         });
+
     } else {
-      this.pedidoService.crearPedido(this.nuevoPedido).subscribe({
-        next: () => {
-          this.cerrarFormulario();
-          this.cargarPedidos();
-        },
-        error: (error) => {
-          console.error('Error al crear el pedido:', error);
-          alert('No fue posible crear el pedido.');
-        }
-      });
+      this.pedidoService
+        .crearPedido(this.nuevoPedido)
+        .subscribe({
+          next: () => {
+            this.cerrarFormulario();
+            this.cargarPedidos();
+            this.cargarColas();
+          },
+
+          error: (error) => {
+            console.error(
+              'Error al crear el pedido:',
+              error
+            );
+
+            alert(
+              'No fue posible crear el pedido.'
+            );
+          }
+        });
     }
   }
 
+  // ELIMINAR PEDIDO
   eliminarPedido(pedido: Pedido): void {
     if (pedido.id === undefined) {
       return;
@@ -194,16 +323,25 @@ export class Pedidos implements OnInit {
       next: () => {
         this.cargarPedidos();
       },
+
       error: (error) => {
-        console.error('Error al eliminar el pedido:', error);
-        alert('No fue posible eliminar el pedido.');
+        console.error(
+          'Error al eliminar el pedido:',
+          error
+        );
+
+        alert(
+          'No fue posible eliminar el pedido.'
+        );
       }
     });
   }
 
+  // CERRAR SESIÓN DE MICROSOFT
   cerrarSesion(): void {
     this.msalService.logoutRedirect({
-      postLogoutRedirectUri: 'http://localhost:4200'
+      postLogoutRedirectUri:
+        'http://localhost:4200'
     });
   }
 }

@@ -1,3 +1,4 @@
+
 <div class="pagina">
 
   <header class="encabezado">
@@ -41,27 +42,46 @@
         <div class="campo">
           <label for="cliente">Cliente</label>
 
-          <input id="cliente" type="text" name="cliente" [(ngModel)]="nuevoPedido.cliente"
-            placeholder="Nombre del cliente" required>
+          <input
+            id="cliente"
+            type="text"
+            name="cliente"
+            [(ngModel)]="nuevoPedido.cliente"
+            placeholder="Nombre del cliente"
+            required>
         </div>
 
         <div class="campo">
           <label for="producto">Producto</label>
 
-          <input id="producto" type="text" name="producto" [(ngModel)]="nuevoPedido.producto"
-            placeholder="Nombre del producto" required>
+          <input
+            id="producto"
+            type="text"
+            name="producto"
+            [(ngModel)]="nuevoPedido.producto"
+            placeholder="Nombre del producto"
+            required>
         </div>
 
         <div class="campo">
           <label for="cantidad">Cantidad</label>
 
-          <input id="cantidad" type="number" name="cantidad" [(ngModel)]="nuevoPedido.cantidad" min="1" required>
+          <input
+            id="cantidad"
+            type="number"
+            name="cantidad"
+            [(ngModel)]="nuevoPedido.cantidad"
+            min="1"
+            required>
         </div>
 
         <div class="campo">
           <label for="estado">Estado</label>
 
-          <select id="estado" name="estado" [(ngModel)]="nuevoPedido.estado">
+          <select
+            id="estado"
+            name="estado"
+            [(ngModel)]="nuevoPedido.estado">
 
             <option value="PENDIENTE">
               PENDIENTE
@@ -84,11 +104,16 @@
 
         <div class="acciones-formulario">
 
-          <button type="button" class="btn-cancelar" (click)="cerrarFormulario()">
+          <button
+            type="button"
+            class="btn-cancelar"
+            (click)="cerrarFormulario()">
             Cancelar
           </button>
 
-          <button type="submit" class="btn-guardar">
+          <button
+            type="submit"
+            class="btn-guardar">
             {{ modoEdicion ? 'Guardar cambios' : 'Guardar pedido' }}
           </button>
 
@@ -131,11 +156,15 @@
 
             <td>
 
-              <button class="btn-editar" (click)="editarPedido(pedido)">
+              <button
+                class="btn-editar"
+                (click)="editarPedido(pedido)">
                 Editar
               </button>
 
-              <button class="btn-eliminar" (click)="eliminarPedido(pedido)">
+              <button
+                class="btn-eliminar"
+                (click)="eliminarPedido(pedido)">
                 Eliminar
               </button>
 
@@ -154,6 +183,81 @@
       </table>
 
     </div>
+
+    <!-- ADMINISTRACIÓN DE RABBITMQ -->
+    <section class="rabbitmq-seccion">
+
+      <div class="titulo-seccion">
+        <div>
+          <h2>Administración de RabbitMQ</h2>
+          <p>
+            Monitoreo de las colas de mensajería de Pedidos360.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="btn-nuevo"
+          (click)="cargarColas()"
+          [disabled]="cargandoColas">
+
+          {{ cargandoColas ? 'Consultando...' : 'Actualizar colas' }}
+
+        </button>
+      </div>
+
+      <p
+        *ngIf="errorColas"
+        class="error-rabbitmq">
+        {{ errorColas }}
+      </p>
+
+      <div class="tabla-contenedor">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>Nombre de cola</th>
+              <th>Existe</th>
+              <th>Mensajes</th>
+              <th>Consumidores</th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            <tr *ngFor="let cola of colasRabbitmq">
+
+              <td>{{ cola.nombre }}</td>
+
+              <td>
+                {{ cola.existe ? 'Sí' : 'No' }}
+              </td>
+
+              <td>{{ cola.mensajes }}</td>
+
+              <td>{{ cola.consumidores }}</td>
+
+            </tr>
+
+            <tr *ngIf="colasRabbitmq.length === 0">
+              <td colspan="4">
+                {{
+                  cargandoColas
+                    ? 'Cargando información de RabbitMQ...'
+                    : 'No hay información de colas disponible.'
+                }}
+              </td>
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </section>
 
   </main>
 
