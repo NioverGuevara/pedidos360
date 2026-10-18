@@ -8,7 +8,7 @@ import { Pedido } from '../models/pedido';
 })
 export class PedidoService {
 
-  private apiUrl = 'http://localhost:8080/api/pedidos';
+  private apiUrl = 'https://pedidos360-ng-aws26.duckdns.org/api/pedidos';
 
   constructor(private http: HttpClient) {}
 

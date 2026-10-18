@@ -27,7 +27,7 @@ export interface EstadoColas {
 export class RabbitmqService {
 
   // API del microservicio administrativo RabbitMQ
-  private apiUrl = 'http://localhost:8081/api/rabbitmq';
+  private apiUrl = 'https://pedidos360-ng-aws26.duckdns.org/api/rabbitmq';
 
   constructor(private http: HttpClient) {}
 

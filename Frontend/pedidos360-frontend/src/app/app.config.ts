@@ -42,8 +42,8 @@ export function MSALInstanceFactory(): IPublicClientApplication {
       clientId: 'bb47a6a0-1b96-43fb-b107-1576638ee9e8',
       authority:
         'https://login.microsoftonline.com/bb5324af-c266-41ed-b36c-a971641c7af2',
-      redirectUri: 'http://localhost:4200/redirect',
-      postLogoutRedirectUri: 'http://localhost:4200'
+      redirectUri: 'https://pedidos360-ng-aws26.duckdns.org/redirect',
+      postLogoutRedirectUri: 'https://pedidos360-ng-aws26.duckdns.org',
     },
     cache: {
       cacheLocation: 'localStorage'
@@ -74,24 +74,24 @@ export function MSALInterceptorConfigFactory():
 
       // MICROSERVICIO 1: PEDIDOS - PUERTO 8080
       [
-        'http://localhost:8080/api/pedidos',
+        'https://pedidos360-ng-aws26.duckdns.org/api/pedidos',
         [API_SCOPE]
       ],
 
       [
-        'http://localhost:8080/api/pedidos/*',
+        'https://pedidos360-ng-aws26.duckdns.org/api/pedidos/*',
         [API_SCOPE]
       ],
 
       // MICROSERVICIO 2: RABBITMQ ADMIN - PUERTO 8081
       [
-        'http://localhost:8081/api/rabbitmq/colas',
+        'https://pedidos360-ng-aws26.duckdns.org/api/rabbitmq/colas',
         [API_SCOPE]
       ],
 
       // PROTEGER LOS DEMAS ENDPOINTS ADMINISTRATIVOS
       [
-        'http://localhost:8081/api/rabbitmq/*',
+        'https://pedidos360-ng-aws26.duckdns.org/api/rabbitmq/*',
         [API_SCOPE]
       ]
 

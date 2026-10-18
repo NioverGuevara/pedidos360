@@ -62,8 +62,6 @@ public class RabbitMQConfig {
     public Queue pedidosQueue() {
         return QueueBuilder.durable(PEDIDOS_QUEUE)
                 .quorum()
-                .deadLetterExchange(DLX)
-                .deadLetterRoutingKey(DLQ_ROUTING_KEY)
                 .build();
     }
 
@@ -71,8 +69,6 @@ public class RabbitMQConfig {
     public Queue notificacionesQueue() {
         return QueueBuilder.durable(NOTIFICACIONES_QUEUE)
                 .quorum()
-                .deadLetterExchange(DLX)
-                .deadLetterRoutingKey(NOTIFICACIONES_ERROR)
                 .build();
     }
 
@@ -80,8 +76,6 @@ public class RabbitMQConfig {
     public Queue ticketsQueue() {
         return QueueBuilder.durable(TICKETS_QUEUE)
                 .quorum()
-                .deadLetterExchange(DLX)
-                .deadLetterRoutingKey(TICKETS_ERROR)
                 .build();
     }
 

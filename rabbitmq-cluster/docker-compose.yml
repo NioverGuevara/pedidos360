@@ -3,13 +3,14 @@ services:
     image: rabbitmq:3-management
     hostname: rabbitmq1
     container_name: pedidos-rabbitmq1
+    restart: unless-stopped
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-      RABBITMQ_ERLANG_COOKIE: pedidos360-cluster-cookie
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:?Configura RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?Configura RABBITMQ_PASSWORD}
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:?Configura RABBITMQ_ERLANG_COOKIE}
     volumes:
       - rabbitmq1_data:/var/lib/rabbitmq
     networks:
@@ -19,13 +20,14 @@ services:
     image: rabbitmq:3-management
     hostname: rabbitmq2
     container_name: pedidos-rabbitmq2
+    restart: unless-stopped
     ports:
-      - "5673:5672"
-      - "15673:15672"
+      - "127.0.0.1:5673:5672"
+      - "127.0.0.1:15673:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-      RABBITMQ_ERLANG_COOKIE: pedidos360-cluster-cookie
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:?Configura RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?Configura RABBITMQ_PASSWORD}
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:?Configura RABBITMQ_ERLANG_COOKIE}
     volumes:
       - rabbitmq2_data:/var/lib/rabbitmq
     networks:

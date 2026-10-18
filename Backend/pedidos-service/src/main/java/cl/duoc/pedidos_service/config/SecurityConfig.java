@@ -63,7 +63,7 @@ public class SecurityConfig {
 
         // Permitir el frontend Angular
         configuration.setAllowedOrigins(
-            List.of("http://localhost:4200")
+            List.of("http://localhost:4200", "https://pedidos360-ng-aws26.duckdns.org")
         );
 
         // Metodos HTTP permitidos
